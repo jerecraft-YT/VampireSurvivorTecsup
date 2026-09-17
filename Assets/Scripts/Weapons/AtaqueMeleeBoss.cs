@@ -1,17 +1,15 @@
 using UnityEngine;
 
-
-//Busca al enemigo mas cercano dentro de una rango y le hace daño
-public class Pistola : Weapon
+public class AtaqueMeleeBoss : Weapon
 {
-    private const int DAÑO_PISTOLA = 5;
-    private const float CADENCIA_PISTOLA = 1f;
-    private const float RANGE_PISTOLA = 6f;
-    private const Element ELEMENT_PISTOLA = Element.Fisico;
+    private const int DAÑO_ATAQUE_MELEE = 5;
+    private const float CADENCIA_ATAQUE_MELEE = 2f;
+    private const float RANGE_ATAQUE_MELEE = 2.5f;
+    private const Element ELEMENT_ATAQUE_MELEE = Element.Fisico;
 
-    public Pistola() : base(DAÑO_PISTOLA, CADENCIA_PISTOLA, RANGE_PISTOLA, "Pistola", ELEMENT_PISTOLA)
+    public AtaqueMeleeBoss() : base(DAÑO_ATAQUE_MELEE, CADENCIA_ATAQUE_MELEE, RANGE_ATAQUE_MELEE, "AtaqueMeleeBoss", ELEMENT_ATAQUE_MELEE)
     {
-        
+
     }
 
     public override void Attack(Entity origin, TargetType targetType)
@@ -34,14 +32,14 @@ public class Pistola : Weapon
 
         float distanciaMinima = Range;
 
-        foreach (var target in targets)
+        foreach (var enemy in targets)
         {
-            float distance = Vector3.Distance(origin.transform.position, target.transform.position);
+            float distance = Vector3.Distance(origin.transform.position, enemy.transform.position);
 
             if (distance <= distanciaMinima)
             {
                 distanciaMinima = distance;
-                enemigoCercano = target;
+                enemigoCercano = enemy;
             }
         }
 

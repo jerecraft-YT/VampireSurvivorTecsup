@@ -2,18 +2,32 @@ using UnityEngine;
 
 public sealed class Boss : Enemy
 {
+    private Weapon actualWeapon;
+
+    [Header("cosas boss")]
+
     [Tooltip("porcentaje de vida en donde si la vida del jefe baja de ese limite sera potenciado")]
     [SerializeField] private float percentToBost;
     [SerializeField] private float speedOnBost;
-    [SerializeField] private float damageOnBost;
+    [SerializeField] private float damageMultiplierOnBost;
     private bool potenciado;
+    private float timeAttack;
 
-    private void Start()
+    protected override void Awake()
     {
-        //TakeDamage(1);
+        base.Awake();
+
+        actualWeapon = new AtaqueMeleeBoss();
     }
 
-    public override void TakeDamage(int damage)
+    protected override void Update()
+    {
+        base.Update();
+
+        WeaponController();
+    }
+
+    public override void TakeDamage(float damage)
     {
         base.TakeDamage(damage);
 
@@ -21,16 +35,29 @@ public sealed class Boss : Enemy
 
         float porcentajeVida = Live / BaseStats.BaseLive;
 
-        if (porcentajeVida < .5f)
+        if (porcentajeVida < percentToBost)
         {
             potenciado = true;
             SetMoveSpeed(speedOnBost);
-            //moveSpeed = speedOnBost;
+            actualWeapon.setDamageMultiplier(damageMultiplierOnBost);
         }
     }
 
-    protected override void Attack(Entity entity)
+    protected override void Attack()
     {
-        
+        actualWeapon.Attack(this, TargetType.Player);
+    }
+
+    private void WeaponController()
+    {
+        if (actualWeapon == null) return;
+
+        timeAttack -= Time.deltaTime;
+
+        if (timeAttack <= 0)
+        {
+            Attack();
+            timeAttack = actualWeapon.Cadencia;
+        }
     }
 }

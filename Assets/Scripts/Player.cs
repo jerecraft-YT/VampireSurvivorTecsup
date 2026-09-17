@@ -1,35 +1,30 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody2D))]
 public class Player : Entity
 {
     [Header("Referencias para movimiento")]
     [SerializeField] private InputActionReference moveAction;
-    [SerializeField] private InputActionReference attackAction;
 
     private Weapon actualWeapon;
-
     private Vector2 dirMove;
-    private Rigidbody2D rb;
+    private float timeAttack;
 
     protected override void Awake()
     {
         base.Awake();
 
-        rb = GetComponent<Rigidbody2D>();
-
         SetActionReferences();
 
-        actualWeapon = new Pistola(10,10f,3f,"Pistola");
+        actualWeapon = new EscopetaFuego();
+
+        timeAttack = actualWeapon.Cadencia;
     }
 
     private void SetActionReferences()
     {
         moveAction.action.performed += OnMove;
         moveAction.action.canceled += OnMove;
-
-        attackAction.action.performed += OnAttack;
     }
 
     private void OnMove(InputAction.CallbackContext ctx)
@@ -37,45 +32,41 @@ public class Player : Entity
         dirMove = ctx.ReadValue<Vector2>();
     }
 
-    private void OnAttack(InputAction.CallbackContext ctx)
-    {
-        FindEnemies();
-    }
-
-    public override void TakeDamage(int damage)
+    public override void TakeDamage(float damage)
     {
         base.TakeDamage(damage);
     }
 
-    private void FixedUpdate()
+    protected override void Update()
     {
-        Move();
+        base.Update();
+
+        MoveController();
+        WeaponController();
     }
 
-    protected override void Move()
+    private void WeaponController()
     {
-        rb.linearVelocity = dirMove * MoveSpeed;
-    }
+        if (actualWeapon == null) return;
 
-    private void FindEnemies()
-    {
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        timeAttack -= Time.deltaTime;
 
-        foreach (var enemy in enemies)
+        if (timeAttack <= 0)
         {
-            float distance = Vector3.Distance(transform.position, enemy.transform.position);
-
-            if (distance <= actualWeapon.Range)
-            {
-                Entity entity = enemy.GetComponent<Enemy>();
-
-                Attack(entity);
-            }
+            Attack();
+            timeAttack = actualWeapon.Cadencia;
         }
     }
 
-    protected override void Attack(Entity entity)
+    protected override void MoveController()
     {
-        entity.TakeDamage(actualWeapon.Daño);
+        transform.position += (Vector3)dirMove * MoveSpeed * Time.deltaTime;
     }
+
+    private void Attack()
+    {
+        actualWeapon.Attack(this,TargetType.Enemy);
+    }
+
+    public Weapon ActualWeapon => actualWeapon;
 }
